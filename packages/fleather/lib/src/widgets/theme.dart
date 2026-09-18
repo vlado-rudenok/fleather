@@ -107,6 +107,9 @@ class FleatherThemeData {
   /// Style theme for horizontal rule.
   final HorizontalRuleThemeData horizontalRule;
 
+  /// Style theme for toolbar button chrome.
+  final FleatherToolbarTheme toolbar;
+
   /// Strut style
   final StrutStyle? strutStyle;
 
@@ -128,6 +131,7 @@ class FleatherThemeData {
     required this.quote,
     required this.code,
     required this.horizontalRule,
+    required this.toolbar,
     this.strutStyle,
   });
 
@@ -278,6 +282,7 @@ class FleatherThemeData {
         thickness: 2,
         color: themeData.colorScheme.surfaceContainerHigh,
       ),
+      toolbar: FleatherToolbarTheme.fromThemeData(themeData),
     );
   }
 
@@ -299,6 +304,7 @@ class FleatherThemeData {
     TextBlockTheme? quote,
     TextBlockTheme? code,
     HorizontalRuleThemeData? horizontalRuleThemeData,
+    FleatherToolbarTheme? toolbar,
     StrutStyle? strutStyle,
   }) {
     return FleatherThemeData(
@@ -319,6 +325,7 @@ class FleatherThemeData {
       quote: quote ?? this.quote,
       code: code ?? this.code,
       horizontalRule: horizontalRuleThemeData ?? horizontalRule,
+      toolbar: toolbar ?? this.toolbar,
       strutStyle: strutStyle ?? this.strutStyle,
     );
   }
@@ -342,7 +349,75 @@ class FleatherThemeData {
       quote: other.quote,
       code: other.code,
       horizontalRuleThemeData: other.horizontalRule,
+      toolbar: other.toolbar,
       strutStyle: other.strutStyle,
+    );
+  }
+}
+
+/// Resolves toolbar chrome from the nearest [FleatherTheme], falling back to
+/// [Theme.of] when no Fleather theme is present.
+FleatherToolbarTheme fleatherToolbarThemeOf(BuildContext context) {
+  return FleatherTheme.of(context, nullOk: true)?.toolbar ??
+      FleatherToolbarTheme.fromThemeData(Theme.of(context));
+}
+
+/// Colors used by Fleather toolbar buttons and dividers.
+class FleatherToolbarTheme {
+  /// Idle button fill color.
+  final Color buttonColor;
+
+  /// Selected / toggled button fill color.
+  final Color toggleColor;
+
+  /// Idle icon color.
+  final Color iconColor;
+
+  /// Selected / toggled icon color.
+  final Color toggleIconColor;
+
+  /// Disabled icon color.
+  final Color disabledIconColor;
+
+  /// Color of vertical section dividers.
+  final Color dividerColor;
+
+  const FleatherToolbarTheme({
+    required this.buttonColor,
+    required this.toggleColor,
+    required this.iconColor,
+    required this.toggleIconColor,
+    required this.disabledIconColor,
+    required this.dividerColor,
+  });
+
+  factory FleatherToolbarTheme.fromThemeData(ThemeData theme) {
+    return FleatherToolbarTheme(
+      buttonColor: theme.canvasColor,
+      toggleColor: theme.colorScheme.secondary,
+      iconColor: theme.iconTheme.color ?? theme.colorScheme.onSurface,
+      toggleIconColor:
+          theme.primaryIconTheme.color ?? theme.colorScheme.onSurface,
+      disabledIconColor: theme.disabledColor,
+      dividerColor: Colors.grey.shade400,
+    );
+  }
+
+  FleatherToolbarTheme copyWith({
+    Color? buttonColor,
+    Color? toggleColor,
+    Color? iconColor,
+    Color? toggleIconColor,
+    Color? disabledIconColor,
+    Color? dividerColor,
+  }) {
+    return FleatherToolbarTheme(
+      buttonColor: buttonColor ?? this.buttonColor,
+      toggleColor: toggleColor ?? this.toggleColor,
+      iconColor: iconColor ?? this.iconColor,
+      toggleIconColor: toggleIconColor ?? this.toggleIconColor,
+      disabledIconColor: disabledIconColor ?? this.disabledIconColor,
+      dividerColor: dividerColor ?? this.dividerColor,
     );
   }
 }

@@ -23,6 +23,7 @@ class InsertEmbedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final toolbar = fleatherToolbarThemeOf(context);
     return FLIconButton(
       highlightElevation: 0,
       hoverElevation: 0,
@@ -30,9 +31,9 @@ class InsertEmbedButton extends StatelessWidget {
       icon: Icon(
         icon,
         size: 18,
-        color: Theme.of(context).iconTheme.color,
+        color: toolbar.iconColor,
       ),
-      fillColor: Theme.of(context).canvasColor,
+      fillColor: toolbar.buttonColor,
       onPressed: () {
         final index = controller.selection.baseOffset;
         final length = controller.selection.extentOffset - index;
@@ -90,7 +91,7 @@ class UndoRedoButton extends StatelessWidget {
           final icon =
               _variant == _UndoRedoButtonVariant.undo ? Icons.undo : Icons.redo;
           final isEnabled = _isEnabled();
-          final theme = Theme.of(context);
+          final toolbar = fleatherToolbarThemeOf(context);
 
           return FLIconButton(
             highlightElevation: 0,
@@ -99,9 +100,9 @@ class UndoRedoButton extends StatelessWidget {
             icon: Icon(
               icon,
               size: 18,
-              color: isEnabled ? theme.iconTheme.color : theme.disabledColor,
+              color: isEnabled ? toolbar.iconColor : toolbar.disabledIconColor,
             ),
-            fillColor: Theme.of(context).canvasColor,
+            fillColor: toolbar.buttonColor,
             onPressed: isEnabled ? _onPressed : null,
           );
         });
@@ -156,7 +157,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final toolbar = fleatherToolbarThemeOf(context);
     final isEnabled = !widget.controller.selection.isCollapsed;
     final pressedHandler = isEnabled ? () => _openLinkDialog(context) : null;
     return FLIconButton(
@@ -166,9 +167,9 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
       icon: Icon(
         widget.icon ?? Icons.link,
         size: 18,
-        color: isEnabled ? theme.iconTheme.color : theme.disabledColor,
+        color: isEnabled ? toolbar.iconColor : toolbar.disabledIconColor,
       ),
-      fillColor: Theme.of(context).canvasColor,
+      fillColor: toolbar.buttonColor,
       onPressed: pressedHandler,
     );
   }
@@ -341,14 +342,14 @@ Widget defaultToggleStyleButtonBuilder(
   bool isToggled,
   VoidCallback? onPressed,
 ) {
-  final theme = Theme.of(context);
+  final toolbar = fleatherToolbarThemeOf(context);
   final isEnabled = onPressed != null;
   final iconColor = isEnabled
       ? isToggled
-          ? theme.primaryIconTheme.color
-          : theme.iconTheme.color
-      : theme.disabledColor;
-  final fillColor = isToggled ? theme.colorScheme.secondary : theme.canvasColor;
+          ? toolbar.toggleIconColor
+          : toolbar.iconColor
+      : toolbar.disabledIconColor;
+  final fillColor = isToggled ? toolbar.toggleColor : toolbar.buttonColor;
   return FLIconButton(
     highlightElevation: 0,
     hoverElevation: 0,
@@ -418,7 +419,7 @@ class _ColorButtonState extends State<ColorButton> {
     final selector = Material(
       key: const Key('color_selector'),
       elevation: 4.0,
-      color: Theme.of(context).canvasColor,
+      color: fleatherToolbarThemeOf(context).buttonColor,
       child: Container(
           constraints: BoxConstraints(maxWidth: maxWidth),
           padding: const EdgeInsets.all(8.0),
@@ -466,7 +467,7 @@ class _ColorButtonState extends State<ColorButton> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
         padding: EdgeInsets.zero,
         elevation: 0,
-        fillColor: Theme.of(context).canvasColor,
+        fillColor: fleatherToolbarThemeOf(context).buttonColor,
         highlightElevation: 0,
         hoverElevation: 0,
         onPressed: () async {
@@ -626,24 +627,28 @@ class _SelectHeadingButtonState extends State<SelectHeadingButton> {
 
   @override
   Widget build(BuildContext context) {
+    final toolbar = fleatherToolbarThemeOf(context);
     return ConstrainedBox(
       constraints: BoxConstraints.tightFor(height: buttonHeight),
       child: RawMaterialButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
         padding: EdgeInsets.zero,
-        fillColor: Theme.of(context).canvasColor,
+        fillColor: toolbar.buttonColor,
         elevation: 0,
         hoverElevation: 0,
         highlightElevation: 0,
         onPressed: () async {
-          final toolbar = FleatherToolbar._of(context);
+          final toolbarState = FleatherToolbar._of(context);
           final attribute = await _selectHeading();
           if (attribute != null) {
             widget.controller.formatSelection(attribute);
-            toolbar.requestKeyboard();
+            toolbarState.requestKeyboard();
           }
         },
-        child: Text(_headingToText(context)[current] ?? ''),
+        child: Text(
+          _headingToText(context)[current] ?? '',
+          style: TextStyle(color: toolbar.iconColor),
+        ),
       ),
     );
   }
@@ -657,7 +662,7 @@ class _SelectHeadingButtonState extends State<SelectHeadingButton> {
       key: const Key('heading_selector'),
       elevation: 4.0,
       borderRadius: BorderRadius.circular(2),
-      color: Theme.of(context).canvasColor,
+      color: fleatherToolbarThemeOf(context).buttonColor,
       child: _HeadingList(theme: themeData, onSelected: completer.complete),
     );
 
@@ -782,8 +787,9 @@ class _IndentationButtonState extends State<IndentationButton> {
   Widget build(BuildContext context) {
     final isEnabled =
         !_selectionStyle.containsSame(ParchmentAttribute.block.code);
-    final theme = Theme.of(context);
-    final iconColor = isEnabled ? theme.iconTheme.color : theme.disabledColor;
+    final toolbar = fleatherToolbarThemeOf(context);
+    final iconColor =
+        isEnabled ? toolbar.iconColor : toolbar.disabledIconColor;
     return FLIconButton(
       highlightElevation: 0,
       hoverElevation: 0,
@@ -794,7 +800,7 @@ class _IndentationButtonState extends State<IndentationButton> {
               : Icons.format_indent_decrease,
           size: 18,
           color: iconColor),
-      fillColor: theme.canvasColor,
+      fillColor: toolbar.buttonColor,
       onPressed: isEnabled
           ? () {
               final indentLevel =
@@ -857,32 +863,39 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
     bool hideAlignment = false,
     GlobalKey<EditorState>? editorKey,
   }) {
-    Widget backgroundColorBuilder(context, value) => Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.mode_edit_outline_outlined,
-              size: 16,
-            ),
-            Container(
-              width: 18,
-              height: 4,
-              decoration: BoxDecoration(color: value),
-            )
-          ],
-        );
+    Widget backgroundColorBuilder(context, value) {
+      final toolbar = fleatherToolbarThemeOf(context);
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.mode_edit_outline_outlined,
+            size: 16,
+            color: toolbar.iconColor,
+          ),
+          Container(
+            width: 18,
+            height: 4,
+            decoration: BoxDecoration(color: value),
+          )
+        ],
+      );
+    }
+
     Widget textColorBuilder(context, value) {
+      final toolbar = fleatherToolbarThemeOf(context);
       Color effectiveColor =
           value ?? DefaultTextStyle.of(context).style.color ?? Colors.black;
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.text_fields_sharp,
             size: 16,
+            color: toolbar.iconColor,
           ),
           Container(
             width: 18,
@@ -973,8 +986,7 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
                 !hideUnderLineButton &&
                 !hideStrikeThrough &&
                 !hideInlineCode,
-            child: VerticalDivider(
-                indent: 16, endIndent: 16, color: Colors.grey.shade400)),
+            child: const _ToolbarDivider()),
 
         /// ################################################################
 
@@ -987,8 +999,7 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
             )),
         Visibility(
             visible: !hideDirection,
-            child: VerticalDivider(
-                indent: 16, endIndent: 16, color: Colors.grey.shade400)),
+            child: const _ToolbarDivider()),
 
         /// ################################################################
 
@@ -1029,8 +1040,7 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
         ),
         Visibility(
             visible: !hideAlignment,
-            child: VerticalDivider(
-                indent: 16, endIndent: 16, color: Colors.grey.shade400)),
+            child: const _ToolbarDivider()),
 
         /// ################################################################
 
@@ -1049,8 +1059,7 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
         ),
         Visibility(
             visible: !hideIndentation,
-            child: VerticalDivider(
-                indent: 16, endIndent: 16, color: Colors.grey.shade400)),
+            child: const _ToolbarDivider()),
 
         /// ################################################################
 
@@ -1059,8 +1068,7 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
             child: SelectHeadingButton(controller: controller)),
         Visibility(
             visible: !hideHeadingStyle,
-            child: VerticalDivider(
-                indent: 16, endIndent: 16, color: Colors.grey.shade400)),
+            child: const _ToolbarDivider()),
 
         /// ################################################################
         Visibility(
@@ -1101,8 +1109,7 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
                 !hideListBullets &&
                 !hideListChecks &&
                 !hideCodeBlock,
-            child: VerticalDivider(
-                indent: 16, endIndent: 16, color: Colors.grey.shade400)),
+            child: const _ToolbarDivider()),
 
         /// ################################################################
 
@@ -1116,8 +1123,7 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
         ),
         Visibility(
             visible: !hideQuote,
-            child: VerticalDivider(
-                indent: 16, endIndent: 16, color: Colors.grey.shade400)),
+            child: const _ToolbarDivider()),
 
         /// ################################################################
 
@@ -1132,8 +1138,7 @@ class FleatherToolbar extends StatefulWidget implements PreferredSizeWidget {
         ),
         Visibility(
             visible: !hideHorizontalRule || !hideLink,
-            child: VerticalDivider(
-                indent: 16, endIndent: 16, color: Colors.grey.shade400)),
+            child: const _ToolbarDivider()),
 
         /// ################################################################
 
@@ -1197,6 +1202,19 @@ class _FleatherToolbarState extends State<FleatherToolbar> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ToolbarDivider extends StatelessWidget {
+  const _ToolbarDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return VerticalDivider(
+      indent: 16,
+      endIndent: 16,
+      color: fleatherToolbarThemeOf(context).dividerColor,
     );
   }
 }

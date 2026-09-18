@@ -131,6 +131,14 @@ void main() {
             style: const TextStyle(), spacing: const VerticalSpacing()),
         horizontalRule: HorizontalRuleThemeData(
             height: 0, thickness: 0, color: Colors.transparent),
+        toolbar: const FleatherToolbarTheme(
+          buttonColor: Colors.transparent,
+          toggleColor: Colors.transparent,
+          iconColor: Colors.black,
+          toggleIconColor: Colors.black,
+          disabledIconColor: Colors.grey,
+          dividerColor: Colors.grey,
+        ),
       ));
       when(() => rawEditor.controller).thenReturn(controller);
       when(() => rawEditor.readOnly).thenReturn(false);

@@ -51,6 +51,14 @@ void main() {
             spacing: const VerticalSpacing(top: 6.0, bottom: 10.0)),
         horizontalRule:
             HorizontalRuleThemeData(height: 2, thickness: 2, color: Colors.red),
+        toolbar: FleatherToolbarTheme(
+          buttonColor: Colors.white,
+          toggleColor: Colors.blue,
+          iconColor: Colors.black,
+          toggleIconColor: Colors.black,
+          disabledIconColor: Colors.grey,
+          dividerColor: Colors.grey.shade400,
+        ),
       );
 
       final theme2 = FleatherThemeData(
@@ -98,6 +106,14 @@ void main() {
             spacing: const VerticalSpacing(top: 4.0, bottom: 8.0)),
         horizontalRule: HorizontalRuleThemeData(
             height: 4, thickness: 4, color: Colors.green),
+        toolbar: FleatherToolbarTheme(
+          buttonColor: Colors.grey.shade100,
+          toggleColor: Colors.green,
+          iconColor: Colors.black87,
+          toggleIconColor: Colors.white,
+          disabledIconColor: Colors.grey.shade400,
+          dividerColor: Colors.grey.shade300,
+        ),
       );
 
       // Merge the two instances
@@ -120,6 +136,8 @@ void main() {
       expect(mergedTheme.lists, equals(theme2.lists));
       expect(mergedTheme.quote, equals(theme2.quote));
       expect(mergedTheme.code, equals(theme2.code));
+      expect(mergedTheme.toolbar.buttonColor, equals(theme2.toolbar.buttonColor));
+      expect(mergedTheme.toolbar.toggleColor, equals(theme2.toolbar.toggleColor));
     });
   });
 }
